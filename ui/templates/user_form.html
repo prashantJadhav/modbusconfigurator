@@ -1,0 +1,10 @@
+{% extends 'base.html' %}{% block title %}User{% endblock %}
+{% block body %}{% from '_macros.html' import inp, sel, chk, csrf with context %}
+<h1>{{ 'Edit user ' ~ u.username if uid else 'New user' }}</h1>
+<form method="post" class="card narrow">{{ csrf() }}
+{% if uid %}<p>Username: <b>{{ u.username }}</b></p>{% else %}{{ inp('Username','username',u.username,required=true) }}{% endif %}
+{{ sel('Role','role',ROLES,u.role) }}
+{{ inp('Password' ~ (' (leave blank to keep)' if uid else ' (min 8 characters)'),'password','',type='password',autocomplete='new-password') }}
+{{ chk('Enabled','enabled',u.enabled) }}
+<p class="muted">A new/reset password must be changed by the user at the next login.</p>
+<div class="bar"><button class="btn primary">Save</button> <a class="btn" href="{{ url_for('users') }}">Cancel</a></div></form>{% endblock %}

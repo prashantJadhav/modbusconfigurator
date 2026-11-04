@@ -1,0 +1,23 @@
+{% macro attrs(kw) %}{% for k,v in kw.items() %}{% if v %} {{ k }}{% if v is not sameas true %}="{{ v }}"{% endif %}{% endif %}{% endfor %}{% endmacro %}
+{% macro inp(label, name, value, type='text', hint='') %}
+<label class="f"><span>{{ label }}</span>
+<input type="{{ type }}" name="{{ name }}" value="{{ '' if value is none else value }}"{{ attrs(kwargs) }}>
+{% if hint %}<em>{{ hint }}</em>{% endif %}</label>
+{% endmacro %}
+{% macro sel(label, name, options, value, help=none, hint='') %}
+<label class="f"><span>{{ label }}</span>
+<select name="{{ name }}"{{ attrs(kwargs) }}>
+{% for o in options %}{% if o is sequence and o is not string %}{% set ov, ol = o[0], o[1] %}{% else %}{% set ov, ol = o, o %}{% endif %}
+<option value="{{ ov }}" {{ 'selected' if ov|string == value|string }}>{{ ol }}{% if help and help.get(ov) %} - {{ help[ov] }}{% endif %}</option>
+{% endfor %}</select>{% if hint %}<em>{{ hint }}</em>{% endif %}</label>
+{% endmacro %}
+{% macro chk(label, name, value) %}
+<label class="f chk"><input type="checkbox" name="{{ name }}" {{ 'checked' if value }}{{ attrs(kwargs) }}><span>{{ label }}</span></label>
+{% endmacro %}
+{% macro csrf() %}<input type="hidden" name="_csrf" value="{{ csrf_token }}">{% endmacro %}
+{% macro post_btn(url, label, cls='btn sm', confirm='') %}
+<form method="post" action="{{ url }}" class="inline"{% if confirm %} data-confirm="{{ confirm }}"{% endif %}>{{ csrf() }}<button class="{{ cls }}">{{ label }}</button></form>
+{% endmacro %}
+{% macro conn(d) %}{% if d.protocol == 'TCP' %}TCP {{ d.ip_address }}:{{ d.port }} &middot; unit {{ d.unit_id }}{% else %}RTU {{ d.com_port }} &middot; {{ d.baud_rate }} {{ d.data_bits }}{{ d.parity[0] }}{{ d.stop_bits }} &middot; slave {{ d.slave_id }}{% endif %}{% endmacro %}
+{% macro pconn(d) %}{% if d.protocol == 'TCP' %} {{ d.ip_address }} &middot; {% else %}RTU {{ d.com_port }} &middot; &middot; {% endif %}{% endmacro %}
+{% macro show_errors(errs) %}{% if errs %}<div class="flash error"><ul>{% for e in errs %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}{% endmacro %}

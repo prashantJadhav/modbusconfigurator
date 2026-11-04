@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block title %}Sign in{% endblock %}
+{% block body %}{% from '_macros.html' import inp, csrf with context %}
+<form method="post" class="card narrow">{{ csrf() }}<h1>Edge Gateway</h1><p class="muted">Sign in to manage the Modbus &rarr; API configuration.</p>
+{{ inp('Username','username','',autofocus=true,autocomplete='username') }}
+{{ inp('Password','password','',type='password',autocomplete='current-password') }}
+<button class="btn primary">Sign in</button></form>{% endblock %}

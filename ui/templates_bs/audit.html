@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% block title %}Audit{% endblock %}
+{% block body %}<h1 class="h3 mb-3">Audit trail <small class="text-body-secondary fs-6">last 300 events</small></h1>
+<div class="card shadow-sm"><div class="table-responsive"><table class="table table-sm table-hover mb-0"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>Detail</th></tr></thead><tbody>
+{% for r in rows %}<tr><td class="text-nowrap">{{ r.at|dt }}</td><td>{{ r.username or '-' }}</td><td>{{ r.action }}</td><td>{{ r.entity }}</td><td class="clip">{{ r.detail }}</td></tr>{% endfor %}</tbody></table></div></div>{% endblock %}

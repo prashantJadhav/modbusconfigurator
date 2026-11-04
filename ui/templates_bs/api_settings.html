@@ -1,0 +1,20 @@
+{% extends 'base.html' %}{% block title %}API settings{% endblock %}
+{% block body %}{% from '_macros.html' import inp, chk, csrf with context %}
+{% set ro = not can('config') %}{% set cred_ro = not can('admin') %}
+<h1 class="h3 mb-3">API settings</h1>
+<form method="post">{{ csrf() }}
+<div class="card shadow-sm mb-3"><div class="card-header fw-semibold">Endpoint &amp; credentials {% if cred_ro %}<span class="badge text-bg-secondary ms-2">admin only</span>{% endif %}</div><div class="card-body"><div class="row g-3">
+{{ inp('API URL','api_url',cfg.api_url,disabled=cred_ro,col='col-12') }}
+{{ inp('X-SCADA-Device-Id','scada_device_id',cfg.scada_device_id,disabled=cred_ro,col='col-md-6') }}
+{{ inp('Secret key','secret_key','',type='password',placeholder='•••••••• (leave blank to keep)',disabled=cred_ro,autocomplete='new-password',hint='Write-only: the stored key is never displayed.',col='col-md-6') }}
+</div></div></div>
+<div class="card shadow-sm mb-3"><div class="card-header fw-semibold">Publishing</div><div class="card-body"><div class="row g-3">
+{{ inp('Publish interval (s)','publish_interval_s',cfg.publish_interval_s,type='number',min=1,disabled=ro,col='col-md-3') }}
+{{ inp('HTTP timeout (s)','http_timeout_s',cfg.http_timeout_s,type='number',min=1,disabled=ro,col='col-md-3') }}
+{{ inp('Ignore tag values older than (s)','max_value_age_s',cfg.max_value_age_s,type='number',min=1,disabled=ro,col='col-md-3') }}
+{{ inp('Keep API log for (days)','log_retention_days',cfg.log_retention_days,type='number',min=1,disabled=ro,col='col-md-3') }}
+{{ chk('Verify SSL certificate','verify_ssl',cfg.verify_ssl,disabled=ro,col='col-md-6') }}
+{{ chk('Publishing enabled','enabled',cfg.enabled,disabled=ro,col='col-md-6') }}
+</div></div></div>
+{% if not ro %}<button class="btn btn-primary">Save</button>{% endif %}
+</form>{% endblock %}

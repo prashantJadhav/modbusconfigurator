@@ -1,0 +1,20 @@
+{% extends 'base.html' %}{% block title %}API settings{% endblock %}
+{% block body %}{% from '_macros.html' import inp, chk, csrf with context %}
+{% set ro = not can('config') %}{% set cred_ro = not can('admin') %}
+<h1>API settings</h1>
+<form method="post" class="card">{{ csrf() }}
+<fieldset><legend>Endpoint &amp; credentials {% if cred_ro %}<span class="muted">(admin only)</span>{% endif %}</legend><div class="grid">
+{{ inp('API URL','api_url',cfg.api_url,disabled=cred_ro) }}
+{{ inp('X-SCADA-Device-Id','scada_device_id',cfg.scada_device_id,disabled=cred_ro) }}
+{{ inp('Secret key','secret_key','',type='password',placeholder='•••••••• (leave blank to keep)',disabled=cred_ro,autocomplete='new-password') }}
+</div></fieldset>
+<fieldset><legend>Publishing</legend><div class="grid">
+{{ inp('Publish interval (s)','publish_interval_s',cfg.publish_interval_s,type='number',min=1,disabled=ro) }}
+{{ inp('HTTP timeout (s)','http_timeout_s',cfg.http_timeout_s,type='number',min=1,disabled=ro) }}
+{{ inp('Ignore tag values older than (s)','max_value_age_s',cfg.max_value_age_s,type='number',min=1,disabled=ro) }}
+{{ inp('Keep API log for (days)','log_retention_days',cfg.log_retention_days,type='number',min=1,disabled=ro) }}
+{{ chk('Verify SSL certificate','verify_ssl',cfg.verify_ssl,disabled=ro) }}
+{{ chk('Publishing enabled','enabled',cfg.enabled,disabled=ro) }}
+</div></fieldset>
+{% if not ro %}<div class="bar"><button class="btn primary">Save</button></div>{% endif %}
+</form>{% endblock %}

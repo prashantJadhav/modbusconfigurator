@@ -1,0 +1,65 @@
+{% extends 'base.html' %}{% block title %}Dashboard{% endblock %}
+{% block body %}{% from '_macros.html' import conn,pconn, badge with context %}
+{% set enabled_devs = devices|selectattr('enabled')|list %}{% set connected = enabled_devs|selectattr('connection_status','equalto','Connected')|list %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1 class="h3 mb-0">Dashboard</h1>
+<div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="autorefresh"><label class="form-check-label small" for="autorefresh">Auto-refresh 10 s</label></div></div>
+{% if unmapped %}<div class="alert alert-danger">Required payload keys with no enabled tag - the API call will <b>not</b> be sent until mapped: <b>{{ unmapped|map(attribute='tag_name')|join(', ') }}</b></div>{% endif %}
+{% if cfg and not cfg.enabled %}<div class="alert alert-warning">API publishing is disabled (API settings &rarr; Publishing enabled).</div>{% endif %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-body-secondary small">Devices connected</div><div class="fs-2 fw-semibold">{{ connected|length }} <span class="fs-6 text-body-secondary">/ {{ enabled_devs|length }} enabled</span></div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-body-secondary small">Enabled tags</div><div class="fs-2 fw-semibold">{{ live|length }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-body-secondary small">Last API call</div>
+    {% if last_api %}<div class="fs-2 fw-semibold">{{ badge('success' if last_api.success else 'danger', last_api.http_status or 'not sent') }}</div><div class="small text-body-secondary">{{ last_api.logged_at|dt }}</div>{% else %}<div class="fs-5 text-body-secondary">none yet</div>{% endif %}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-body-secondary small">Publish interval</div><div class="fs-2 fw-semibold">{{ cfg.publish_interval_s if cfg else '-' }} <span class="fs-6 text-body-secondary">s</span></div></div></div></div>
+</div>
+<div class="card shadow-sm mb-4">
+  <div class="card-header fw-semibold">Devices</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle mb-0">
+      <thead>
+        <tr><th>Device</th><th>Connection</th>
+          <!-- <th>Poll (ms)</th> -->
+          <th>Status</th>
+          <th>Last comm</th>
+          <!--<th>Resp (ms)</th>-->
+          <th>OK / Fail</th>
+          <th>Last error</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in devices %}
+        <tr>
+          <td><a href="{{ url_for('tags', device=d.id) }}">{{ d.device_name }}</a></td>
+          <td>{{ pconn(d) }}</td>
+          <!-- <td>{{ d.poll_interval_ms }}</td> -->
+          <td>{% if not d.enabled %}{{ badge('secondary','disabled') }}{% elif d.connection_status == 'Connected' %}{{ badge('success','connected') }}{% else %}{{ badge('danger','disconnected') }}{% endif %}</td>
+          <td>{{ d.last_comm_time|dt }}</td>
+          <!-- <td>{{ d.response_time_ms if d.response_time_ms is not none else '-' }}</td> -->
+          <td>{{ d.success_count or 0 }} / {{ d.fail_count or 0 }}</td><td class="clip">{{ d.last_error or '' }}</td>
+        </tr>
+        {% else %}<tr><td colspan="8" class="text-body-secondary text-center py-3">No devices yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="card shadow-sm mb-4"><div class="card-header fw-semibold">Live values</div><div class="table-responsive">
+<table class="table table-sm table-hover align-middle mb-0">
+  <thead>
+    <tr>
+      <th>Payload key</th><th>Device</th><th class="text-end">Value</th><th>Unit</th><th>Quality</th>
+      <!-- <th>Age</th> -->
+      <th class="error-column">Error</th>
+    </tr>
+  </thead>
+  <tbody>
+{% for t in live %}<tr><td>{{ t.tag_name }}{% if t.is_required %} {{ badge('primary','required') }}{% endif %}</td><td>{{ t.device_name }}</td>
+<td class="num">{{ t.value if t.value is not none else '-' }}</td><td>{{ t.unit or '' }}</td>
+<td>{% if t.quality == 'GOOD' %}{{ badge('success','good') }}{% elif t.quality %}{{ badge('danger','bad') }}{% else %}-{% endif %}</td>
+<!-- <td>{{ t.read_at|age }}</td> -->
+<td class="pclip">{{ t.error or '' }}</td>
+</tr>
+{% else %}<tr><td colspan="7" class="text-body-secondary text-center py-3">No enabled tags.</td></tr>{% endfor %}</tbody></table></div></div>
+{% if last_api %}<div class="card shadow-sm"><div class="card-header fw-semibold">Last API call</div><div class="card-body d-flex flex-wrap gap-4 align-items-center">
+<div><span class="text-body-secondary small d-block">Time</span>{{ last_api.logged_at|dt }}</div><div><span class="text-body-secondary small d-block">Response</span>{{ last_api.http_status or '-' }}</div>
+<div class="flex-grow-1"><span class="text-body-secondary small d-block">Message</span>{{ last_api.response_message }}</div><a class="btn btn-sm btn-outline-primary" href="{{ url_for('api_log_detail', lid=last_api.id) }}">Details</a></div></div>{% endif %}
+{% endblock %}

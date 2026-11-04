@@ -1,0 +1,38 @@
+{% extends 'base.html' %}{% block title %}Tags{% endblock %}
+{% block body %}{% from '_macros.html' import post_btn, badge with context %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1 class="h3 mb-0">Tags / registers</h1>
+{% if can('config') %}<a class="btn btn-primary" href="{{ url_for('tag_new', device=did) }}">+ New tag</a>{% endif %}</div>
+<form method="get" class="row g-2 align-items-center mb-3"><div class="col-auto"><select class="form-select form-select-sm" name="device" aria-label="Device"><option value="">All devices</option>
+{% for d in devices %}<option value="{{ d.id }}" {{ 'selected' if did == d.id }}>{{ d.device_name }}</option>{% endfor %}</select></div><div class="col-auto"><button class="btn btn-sm btn-outline-secondary">Filter</button></div></form>
+<div class="card shadow-sm"><div class="table-responsive">
+    <table class="table table-striped table-smmm table-hover align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Device</th><th>Payload key</th><th>FC</th><th class="text-end">Address</th><th>Type</th><th>Len</th><th class="text-end">Scale</th><th class="text-end">Offset</th><th>Dec</th>
+    <!--<th class="text-end">Live value</th><th>Quality</th><th>Age</th><th>On</th>-->
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for t in tags %}<tr class="{{ 'dim' if not t.enabled }}"><td>{{ t.device_name }}</td>
+        <td>{{ t.tag_name }}{% if t.is_required %} {{ badge('primary','req') }}{% endif %}{% if t.name_uses > 1 %} {{ badge('warning','shared','Same payload key used by ' ~ t.name_uses ~ ' tags - only one may be enabled') }}{% endif %}<div class="small text-body-secondary">{{ t.unit or '' }} {{ t.description or '' }}</div></td>
+        <td>{{ '%02d'|format(t.function_code) }}</td><td class="num">{{ t.address }}</td>
+        <td>{{ t.data_type }}</td><td>{{ t.length }}</td><td class="num">{{ t.scale_factor }}</td>
+        <td class="num">{{ t.offset_value }}</td><td>{{ t.decimals }}</td>
+        <!--<td class="num">{{ t.value if t.value is not none else '-' }}</td>
+        <td>{% if t.quality == 'GOOD' %}{{ badge('success','good') }}{% elif t.quality %}{{ badge('danger','bad', t.error or '') }}{% else %}-{% endif %}</td>
+        <td>{{ t.read_at|age }}</td>
+        <td>{{ 'yes' if t.enabled else 'no' }}</td> -->
+        <td class="actions text-end">{% if can('config') %}<a class="btn btn-sm btn-outline-primary" href="{{ url_for('tag_edit', tid=t.id) }}">Edit</a>
+        {{ post_btn(url_for('tag_toggle', tid=t.id), 'Disable' if t.enabled else 'Enable') }}
+        {{ post_btn(url_for('tag_delete', tid=t.id), 'Del', 'btn btn-sm btn-outline-danger', 'Delete this tag?') }}{% endif %}</td></tr>
+        {% else %}<tr><td colspan="14" class="text-body-secondary text-center py-4">No tags.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+</div></div>
+<nav class="d-flex gap-3 align-items-center mt-3">{% if page > 1 %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('tags', page=page-1, **qargs) }}">&laquo; Newer</a>{% endif %}
+<span class="text-body-secondary small">Page {{ page }} / {{ pages }}</span>
+{% if page < pages %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('tags', page=page+1, **qargs) }}">Older &raquo;</a>{% endif %}</nav>
+
+
+{% endblock %}

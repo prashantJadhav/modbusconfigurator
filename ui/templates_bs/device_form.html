@@ -1,0 +1,57 @@
+{% extends 'base.html' %}{% block title %}{{ title }}{% endblock %}
+{% block body %}{% from '_macros.html' import inp, sel,radio, chk, csrf, show_errors with context %}
+<h1 class="h3 mb-3">{{ title }}</h1>{{ show_errors(errors) }}
+<form method="post" action="{{ action }}" id="devform">{{ csrf() }}
+<div class="card shadow-sm mb-3"><div class="card-header fw-semibold">Connection details</div><div class="card-body">
+  <!--<div class="row g-3 mb-2">{{ sel('Connect using','protocol',[('RTU','Direct connection to serial port (RS485 / RS232)'),('TCP','Remote Modbus TCP server')],dev.protocol,id='protocol',col='col-md-6',) }}</div>-->
+  <div class="row g-3 mb-2">{{ radio('Modbus connection via','protocol',[('RTU','Serial'),('TCP','TCP')],dev.protocol,id='protocol',col='col-md-6',class='d-flex gap-3') }}</div>
+  
+  <div class="row g-3 tcp-only">
+    {{ inp('IP address','ip_address',dev.ip_address,placeholder='192.168.1.100',col='col-md-4') }}
+    {{ inp('Service port','port',dev.port,type='number',min=1,max=65535,col='col-md-4') }}
+    {{ inp('Unit ID','unit_id',dev.unit_id,type='number',min=0,max=255,col='col-md-4') }}
+  </div>
+  <div class="rtu-only">
+    <div class="row g-3">
+      {{ inp('Serial port','com_port',dev.com_port,list='ports',placeholder='/dev/ttyUSB0  or  COM3',col='col-md-4') }}
+      <datalist id="ports">{% for p in ports %}<option value="{{ p }}">{% endfor %}</datalist>
+      {{ sel('Baud rate','baud_rate',BAUDS,dev.baud_rate,col='col-md-4') }}
+      {{ sel('Word length','data_bits',[7,8],dev.data_bits,col='col-md-4') }}
+      {{ sel('Parity','parity',PARITIES,dev.parity,col='col-md-4') }}
+      {{ sel('Stop bits','stop_bits',[1,2],dev.stop_bits,col='col-md-4') }}
+      {{ inp('Slave ID','slave_id',dev.slave_id,type='number',min=0,max=255,col='col-md-4') }}
+    </div>
+    <div class="border rounded p-3 mt-3"><div class="fw-semibold mb-2">Hardware flow control</div>
+      <div class="row g-3">
+        {{ chk('Wait for DSR from slave','wait_for_dsr',dev.wait_for_dsr,col='col-md-6') }}
+        {{ chk('Wait for CTS from slave','wait_for_cts',dev.wait_for_cts,col='col-md-6') }}
+        {{ sel('DTR control','dtr_control',DTR_MODES,dev.dtr_control,col='col-md-6') }}
+        {{ sel('RTS control','rts_control',RTS_MODES,dev.rts_control,id='rts_control',col='col-md-6') }}
+        {{ inp('Delay (ms) after RTS before transmitting first character','rts_delay_before_ms',dev.rts_delay_before_ms,type='number',min=0,max=5000,col='col-md-6',**{'class':'rts-delay'}) }}
+        {{ inp('Delay (ms) after last character before releasing RTS','rts_delay_after_ms',dev.rts_delay_after_ms,type='number',min=0,max=5000,col='col-md-6',**{'class':'rts-delay'}) }}
+      </div>
+      <div class="form-text">RTS delays apply to <b>Toggle</b> (RS485 direction control through the Linux kernel RS485 mode).</div>
+    </div>
+  </div>
+</div></div>
+<div class="card shadow-sm mb-3"><div class="card-header fw-semibold">Polling</div><div class="card-body"><div class="row g-3">
+  {{ inp('Device name','device_name',dev.device_name,required=true,maxlength=60,col='col-md-4') }}
+  {{ inp('Description','description',dev.description,col='col-md-8') }}
+  {{ inp('Polling interval (ms)','poll_interval_ms',dev.poll_interval_ms,type='number',min=100,col='col-md-3') }}
+  {{ inp('Response timeout (ms)','timeout_ms',dev.timeout_ms,type='number',min=50,col='col-md-3') }}
+  {{ inp('Retry count','retry_count',dev.retry_count,type='number',min=0,max=10,col='col-md-3') }}
+  {{ chk('Enabled (polled by the gateway)','enabled',dev.enabled,col='col-md-3') }}
+</div></div></div>
+<div class="card shadow-sm mb-3"><div class="card-header fw-semibold">Byte order</div><div class="card-body"><div class="row g-3">
+  {{ sel('Float byte order','float_byte_order',ORD32,dev.float_byte_order,help=ORDER_HELP,col='col-md-6') }}
+  {{ sel('Long byte order','long_byte_order',ORD32,dev.long_byte_order,help=ORDER_HELP,col='col-md-6') }}
+  {{ sel('Double 64-bit byte order','double_byte_order',ORD64,dev.double_byte_order,help=ORDER_HELP,col='col-md-6') }}
+  {{ sel('Long 64-bit byte order','long64_byte_order',ORD64,dev.long64_byte_order,help=ORDER_HELP,col='col-md-6') }}
+</div><div class="form-text mt-2">Digits give the significance of each byte in wire order. Order3210 = standard big-endian (ABCD).</div></div></div>
+{% if clone %}<div class="card shadow-sm mb-3 border-primary"><div class="card-header fw-semibold">Clone options</div><div class="card-body">
+  {{ chk('Copy the ' ~ n_tags ~ ' tag(s) - copies are created DISABLED so payload keys stay unique','copy_tags',true,col='mb-2') }}
+  <label class="form-label small text-body-secondary mb-1" for="bulk">Create more copies at once (optional) - one per line:
+    <code>name,ip[,unit_id]</code> for TCP &nbsp;|&nbsp; <code>name,slave_id</code> for RTU</label>
+  <textarea class="form-control" id="bulk" name="bulk" rows="4" placeholder="Meter-2,192.168.1.101,2">{{ bulk }}</textarea></div></div>{% endif %}
+<div class="d-flex gap-2"><button class="btn btn-primary">{{ 'Create' if clone or title.startswith('New') else 'Save' }}</button> <a class="btn btn-outline-secondary" href="{{ url_for('devices') }}">Cancel</a></div>
+</form>{% endblock %}

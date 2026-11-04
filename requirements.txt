@@ -1,0 +1,7 @@
+pymodbus>=3.6,<4
+pyserial>=3.5          # RS485/RTU
+psycopg2-binary>=2.9
+requests>=2.31
+flask>=3.0             # configuration web UI
+waitress>=3.0          # production WSGI server for the UI
+python-dotenv

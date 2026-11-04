@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}{% endblock %} - Edge Gateway</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='bs-extra.css') }}">
+<script src="{{ url_for('static', filename='theme.js') }}"></script></head>
+<body class="bg-body-tertiary">
+{% from '_macros.html' import csrf with context %}
+{% if user %}
+<nav class="navbar navbar-expand-lg bg-body border-bottom sticky-top"><div class="container-xxl">
+  <!--a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">Edge Gateway <small class="fw-normal text-body-secondary"></small></a> -->
+  <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url_for('dashboard') }}">
+    <img
+        src="/static/img/logo.png"
+        alt="Edge Gateway Logo"
+        widssth="40"
+        height="40"
+        class="rounded"
+        style="object-fit: contain;"
+    >
+    <!--span>Edge Gateway</span> -->
+  </a>
+  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainnav" aria-controls="mainnav" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+  <div class="collapse navbar-collapse" id="mainnav">
+    <ul class="navbar-nav me-auto">
+    {% for ep,label,perm in [('dashboard','Dashboard','view'),('devices','Devices','view'),('tags','Tags','view'),('api_settings','API settings','view'),('api_log','API log','view'),('users','Users','admin'),('audit_view','Audit','admin')] %}
+      {% if can(perm) %}<li class="nav-item"><a class="nav-link {{ 'active fw-semibold' if request.endpoint==ep or (ep=='devices' and request.endpoint.startswith('device_')) or (ep=='tags' and request.endpoint.startswith('tag_')) or (ep=='api_log' and request.endpoint=='api_log_detail') or (ep=='users' and request.endpoint=='user_edit') }}" href="{{ url_for(ep) }}">{{ label }}</a></li>{% endif %}
+    {% endfor %}
+    </ul>
+    <div class="d-flex align-items-center gap-2">
+      <!-- code for dropdown -->
+       
+      <!-- Profile Dropdown -->
+      <div class="dropdown">
+        <button
+          class="btn border-0 p-0 rounded-circle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <img
+            src="/static/img/user.png"
+            alt="{{ user.username }}"
+            width="42"
+            height="42"
+            class="rounded-circle"
+          >{{ user.username }}
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end shadow">
+          <li>
+            <a class="dropdown-item" href="{{ url_for('password') }}">
+              <i class="bi bi-key me-2"></i>
+              Change Password
+            </a>
+          </li>
+
+          <li><hr class="dropdown-divider"></li>
+
+          <li>
+            <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+              <i class="bi bi-box-arrow-right me-2"></i>
+              Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+
+
+       <!-- eof code for dropsown--
+      <a class="text-decoration-none" href="{{ url_for('password') }}" title="Change password">{{ user.username }}</a>
+      <span class="badge text-bg-{{ {'admin':'danger','engineer':'warning','viewer':'success'}[user.role] }}">{{ user.role }}</span>
+      <form method="post" action="{{ url_for('logout') }}" class="d-inline">{{ csrf() }}<button class="btn btn-sm btn-outline-secondary">Sign out</button></form>
+    -->
+    </div>
+  </div>
+</div></nav>
+{% endif %}
+<main class="container-xxl py-4">
+{% with msgs = get_flashed_messages(with_categories=true) %}{% for cat, m in msgs %}<div class="alert alert-{{ {'ok':'success','error':'danger','warn':'warning'}.get(cat,'info') }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>{% endfor %}{% endwith %}
+{% block body %}{% endblock %}
+</main>
+<script src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body></html>

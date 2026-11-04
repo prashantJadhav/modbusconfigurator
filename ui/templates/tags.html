@@ -1,0 +1,22 @@
+{% extends 'base.html' %}{% block title %}Tags{% endblock %}
+{% block body %}{% from '_macros.html' import post_btn with context %}
+<h1>Tags / registers {% if can('config') %}<a class="btn primary" href="{{ url_for('tag_new', device=did) }}">+ New tag</a>{% endif %}</h1>
+<form method="get" class="filter"><label>Device <select name="device"><option value="">All devices</option>
+{% for d in devices %}<option value="{{ d.id }}" {{ 'selected' if did == d.id }}>{{ d.device_name }}</option>{% endfor %}</select></label> <button class="btn sm">Filter</button></form>
+<table><thead><tr><th>Device</th><th>Payload key</th><th>FC</th><th>Address</th><th>Type</th><th>Len</th><th>Scale</th><th>Offset</th><th>Dec</th>
+    <!--<th>Live value</th><th>Quality</th><th>Age</th><th>On</th> -->
+    <th></th>
+</tr></thead><tbody>
+{% for t in tags %}<tr class="{{ 'dim' if not t.enabled }}"><td>{{ t.device_name }}</td>
+<td>{{ t.tag_name }}{% if t.is_required %} <span class="badge req">req</span>{% endif %}{% if t.name_uses > 1 %} <span class="badge warn" title="Same payload key used by {{ t.name_uses }} tags - only one may be enabled">shared</span>{% endif %}<br><span class="muted">{{ t.unit or '' }} {{ t.description or '' }}</span></td>
+<td>{{ '%02d'|format(t.function_code) }}</td><td class="num">{{ t.address }}</td>
+<td>{{ t.data_type }}</td><td>{{ t.length }}</td>
+<td class="num">{{ t.scale_factor }}</td><td class="num">{{ t.offset_value }}</td><td>{{ t.decimals }}</td>
+<!--<td class="num">{{ t.value if t.value is not none else '-' }}</td>
+<td>{% if t.quality == 'GOOD' %}<span class="badge ok">good</span>{% elif t.quality %}<span class="badge bad" title="{{ t.error or '' }}">bad</span>{% else %}-{% endif %}</td><td>{{ t.read_at|age }}</td>
+<td>{{ 'yes' if t.enabled else 'no' }}</td> -->
+<td class="actions">{% if can('config') %}<a class="btn sm" href="{{ url_for('tag_edit', tid=t.id) }}">Edit</a>
+{{ post_btn(url_for('tag_toggle', tid=t.id), 'Disable' if t.enabled else 'Enable') }}
+{{ post_btn(url_for('tag_delete', tid=t.id), 'Del', 'btn sm danger', 'Delete this tag?') }}{% endif %}</td></tr>
+{% else %}<tr><td colspan="14" class="muted">No tags.</td></tr>{% endfor %}</tbody></table>
+{% endblock %}

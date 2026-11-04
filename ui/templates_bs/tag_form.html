@@ -1,0 +1,20 @@
+{% extends 'base.html' %}{% block title %}{{ title }}{% endblock %}
+{% block body %}{% from '_macros.html' import inp, sel, chk, csrf, show_errors with context %}
+<h1 class="h3 mb-3">{{ title }}</h1>{{ show_errors(errors) }}
+<form method="post" action="{{ action }}" class="card shadow-sm"><div class="card-body">{{ csrf() }}<div class="row g-3">
+{{ sel('Device','device_id',device_opts,tag.device_id,col='col-md-6') }}
+<div class="col-md-6"><label class="form-label small text-body-secondary mb-1" for="tag_name">Tag name (API payload key)</label><select class="form-select" id="tag_name" name="tag_name">
+{% for c in catalog %}<option value="{{ c.tag_name }}" {{ 'selected' if c.tag_name == tag.tag_name }}>{{ c.tag_name }} ({{ c.unit or '-' }}){{ ' *' if c.is_required }}</option>{% endfor %}</select><div class="form-text">* = required by the API</div></div>
+{{ inp('Description','description',tag.description,col='col-12') }}
+{{ sel('Function code','function_code',FCS.items()|list,tag.function_code,col='col-md-6') }}
+{{ inp('Address (zero-based)','address',tag.address,type='number',min=0,max=65535,col='col-md-3') }}
+{{ sel('Data type','data_type',DTYPES.keys()|list,tag.data_type,id='data_type',col='col-md-3') }}
+<div class="col-md-3"><label class="form-label small text-body-secondary mb-1" for="length">Length (registers/coils)</label><input class="form-control" disabled="disableds" type="text" id="length" value="{{ DTYPES.get(tag.data_type, 1) }}" readonly><div class="form-text">Set automatically from the data type</div></div>
+{{ inp('Scale factor','scale_factor',tag.scale_factor,type='number',step='any',col='col-md-3') }}
+{{ inp('Offset','offset_value',tag.offset_value,type='number',step='any',hint='final = raw x scale + offset',col='col-md-3') }}
+{{ inp('Decimals','decimals',tag.decimals,type='number',min=0,max=10,col='col-md-3') }}
+{{ chk('Enabled','enabled',tag.enabled,col='col-md-3') }}
+</div><div class="form-text mt-2">Byte order for FLOAT / 32-bit / 64-bit types is set on the device.</div>
+<div class="d-flex gap-2 mt-3"><button class="btn btn-primary">Save</button> <a class="btn btn-outline-secondary" href="{{ url_for('tags', device=tag.device_id) }}">Cancel</a></div></div></form>
+<script type="application/json" id="dtypes">{{ DTYPES|tojson }}</script>
+{% endblock %}

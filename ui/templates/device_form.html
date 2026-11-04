@@ -1,0 +1,54 @@
+{% extends 'base.html' %}{% block title %}{{ title }}{% endblock %}
+{% block body %}{% from '_macros.html' import inp, sel, chk, csrf, show_errors with context %}
+<h1>{{ title }}</h1>{{ show_errors(errors) }}
+<form method="post" action="{{ action }}" class="card" id="devform">{{ csrf() }}
+<fieldset><legend>Connection details</legend>
+  {{ sel('Connect using','protocol',[('RTU','Direct connection to serial port (RS485 / RS232)'),('TCP','Remote Modbus TCP server')],dev.protocol,id='protocol') }}
+  <div class="grid tcp-only">
+    {{ inp('IP address','ip_address',dev.ip_address,placeholder='192.168.1.100') }}
+    {{ inp('Service port','port',dev.port,type='number',min=1,max=65535) }}
+    {{ inp('Unit ID','unit_id',dev.unit_id,type='number',min=0,max=255) }}
+  </div>
+  <div class="rtu-only">
+    <div class="grid">
+      {{ inp('Serial port','com_port',dev.com_port,list='ports',placeholder='/dev/ttyUSB0') }}
+      <datalist id="ports">{% for p in ports %}<option value="{{ p }}">{% endfor %}</datalist>
+      {{ sel('Baud rate','baud_rate',BAUDS,dev.baud_rate) }}
+      {{ sel('Word length','data_bits',[7,8],dev.data_bits) }}
+      {{ sel('Parity','parity',PARITIES,dev.parity) }}
+      {{ sel('Stop bits','stop_bits',[1,2],dev.stop_bits) }}
+      {{ inp('Slave ID','slave_id',dev.slave_id,type='number',min=0,max=255) }}
+    </div>
+    <fieldset class="sub"><legend>Hardware flow control</legend>
+      <div class="grid">
+        {{ chk('Wait for DSR from slave','wait_for_dsr',dev.wait_for_dsr) }}
+        {{ chk('Wait for CTS from slave','wait_for_cts',dev.wait_for_cts) }}
+        {{ sel('DTR control','dtr_control',DTR_MODES,dev.dtr_control) }}
+        {{ sel('RTS control','rts_control',RTS_MODES,dev.rts_control,id='rts_control') }}
+        {{ inp('Delay (ms) after RTS before transmitting first character','rts_delay_before_ms',dev.rts_delay_before_ms,type='number',min=0,max=5000,**{'class':'rts-delay'}) }}
+        {{ inp('Delay (ms) after last character before releasing RTS','rts_delay_after_ms',dev.rts_delay_after_ms,type='number',min=0,max=5000,**{'class':'rts-delay'}) }}
+      </div>
+      <p class="muted">RTS delays apply to <b>Toggle</b> (RS485 direction control via the Linux kernel RS485 mode).</p>
+    </fieldset>
+  </div>
+</fieldset>
+<fieldset><legend>Polling</legend><div class="grid">
+  {{ inp('Device name','device_name',dev.device_name,required=true,maxlength=60) }}
+  {{ inp('Description','description',dev.description) }}
+  {{ inp('Polling interval (ms)','poll_interval_ms',dev.poll_interval_ms,type='number',min=100) }}
+  {{ inp('Response timeout (ms)','timeout_ms',dev.timeout_ms,type='number',min=50) }}
+  {{ inp('Retry count','retry_count',dev.retry_count,type='number',min=0,max=10) }}
+  {{ chk('Enabled (polled by the gateway)','enabled',dev.enabled) }}
+</div></fieldset>
+<fieldset><legend>Byte order</legend><div class="grid">
+  {{ sel('Float byte order','float_byte_order',ORD32,dev.float_byte_order,help=ORDER_HELP) }}
+  {{ sel('Long byte order','long_byte_order',ORD32,dev.long_byte_order,help=ORDER_HELP) }}
+  {{ sel('Double 64-bit byte order','double_byte_order',ORD64,dev.double_byte_order,help=ORDER_HELP) }}
+  {{ sel('Long 64-bit byte order','long64_byte_order',ORD64,dev.long64_byte_order,help=ORDER_HELP) }}
+</div><p class="muted">Digits give the significance of each byte in wire order. Order3210 = standard big-endian (ABCD).</p></fieldset>
+{% if clone %}<fieldset><legend>Clone options</legend>
+  {{ chk('Copy the ' ~ n_tags ~ ' tag(s) - copies are created DISABLED so payload keys stay unique','copy_tags',true) }}
+  <label class="f"><span>Create more copies at once (optional) - one per line:<br><code>name,ip[,unit_id]</code> for TCP &nbsp;|&nbsp; <code>name,slave_id</code> for RTU</span>
+  <textarea name="bulk" rows="4" placeholder="Meter-2,192.168.1.101,2">{{ bulk }}</textarea></label></fieldset>{% endif %}
+<div class="bar"><button class="btn primary">{{ 'Create' if clone or title.startswith('New') else 'Save' }}</button> <a class="btn" href="{{ url_for('devices') }}">Cancel</a></div>
+</form>{% endblock %}

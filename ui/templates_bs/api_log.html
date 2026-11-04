@@ -1,0 +1,27 @@
+{% extends 'base.html' %}{% block title %}API log{% endblock %}
+{% block body %}{% from '_macros.html' import badge with context %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1 class="h3 mb-0">API request / response log</h1>
+<div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="autorefresh"><label class="form-check-label small" for="autorefresh">Auto-refresh 10 s</label></div></div>
+<form method="get" class="card shadow-sm mb-3"><div class="card-body py-3"><div class="row g-2 align-items-end">
+  <div class="col-sm-6 col-lg-2"><label class="form-label small text-body-secondary mb-1" for="range">Period</label>
+    <select class="form-select form-select-sm" id="range" name="range">{% for k, v in RANGES.items() %}<option value="{{ k }}" {{ 'selected' if k == range_ }}>{{ v }}</option>{% endfor %}</select></div>
+  <div class="col-sm-6 col-lg-3 custom-range"><label class="form-label small text-body-secondary mb-1" for="from">From</label>
+    <input class="form-control form-control-sm" type="datetime-local" id="from" name="from" value="{{ from_ }}"></div>
+  <div class="col-sm-6 col-lg-3 custom-range"><label class="form-label small text-body-secondary mb-1" for="to">To</label>
+    <input class="form-control form-control-sm" type="datetime-local" id="to" name="to" value="{{ to }}"></div>
+  <div class="col-sm-6 col-lg-2"><label class="form-label small text-body-secondary mb-1" for="status">Result</label>
+    <select class="form-select form-select-sm" id="status" name="status"><option value="all" {{ 'selected' if status=='all' }}>All results</option><option value="ok" {{ 'selected' if status=='ok' }}>Accepted (202)</option><option value="failed" {{ 'selected' if status=='failed' }}>Failed / not sent</option></select></div>
+  <div class="col-auto d-flex gap-2"><button class="btn btn-sm btn-primary">Apply</button><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('api_log') }}">Reset</a></div>
+</div></div></form>
+<div class="d-flex flex-wrap gap-3 align-items-center mb-2 small">
+  <span><b>{{ total }}</b> record(s)</span>{{ badge('success', n_ok ~ ' accepted') }}{{ badge('danger', n_fail ~ ' failed / not sent') }}
+  <span class="text-body-secondary">{% if window[0] or window[1] %}{{ window[0]|dt if window[0] else 'beginning' }} &rarr; {{ window[1]|dt if window[1] else 'now' }}{% else %}all time{% endif %} (server local time)</span></div>
+<div class="card shadow-sm"><div class="table-responsive"><table class="table table-sm table-hover align-middle mb-0">
+<thead><tr><th>Timestamp</th><th>API response code</th><th>API response message</th><th>Sent payload</th><th>ms</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr class="{{ '' if r.success else 'failrow' }}"><td class="text-nowrap">{{ r.logged_at|dt }}</td><td>{% if r.http_status %}{{ badge('success' if r.success else 'danger', r.http_status) }}{% else %}{{ badge('secondary','-') }}{% endif %}</td>
+<td>{{ r.response_message }}</td><td class="clip mono">{{ (r.request_body or '')[:110] }}</td><td>{{ r.duration_ms if r.duration_ms is not none else '' }}</td><td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('api_log_detail', lid=r.id, back=qs) }}">View</a></td></tr>
+{% else %}<tr><td colspan="6" class="text-body-secondary text-center py-4">No log entries in this period.</td></tr>{% endfor %}</tbody></table></div></div>
+<nav class="d-flex gap-3 align-items-center mt-3">{% if page > 1 %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('api_log', page=page-1, **qargs) }}">&laquo; Newer</a>{% endif %}
+<span class="text-body-secondary small">Page {{ page }} / {{ pages }}</span>
+{% if page < pages %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('api_log', page=page+1, **qargs) }}">Older &raquo;</a>{% endif %}</nav>
+{% endblock %}

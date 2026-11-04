@@ -1,0 +1,20 @@
+{% extends 'base.html' %}{% block title %}{{ title }}{% endblock %}
+{% block body %}{% from '_macros.html' import inp, sel, chk, csrf, show_errors with context %}
+<h1>{{ title }}</h1>{{ show_errors(errors) }}
+<form method="post" action="{{ action }}" class="card">{{ csrf() }}<div class="grid">
+{{ sel('Device','device_id',device_opts,tag.device_id) }}
+<label class="f"><span>Tag name (API payload key)</span><select name="tag_name">
+{% for c in catalog %}<option value="{{ c.tag_name }}" {{ 'selected' if c.tag_name == tag.tag_name }}>{{ c.tag_name }} ({{ c.unit or '-' }}){{ ' *' if c.is_required }}</option>{% endfor %}</select><em>* = required by the API</em></label>
+{{ inp('Description','description',tag.description) }}
+{{ sel('Function code','function_code',FCS.items()|list,tag.function_code) }}
+{{ inp('Address (zero-based)','address',tag.address,type='number',min=0,max=65535) }}
+{{ sel('Data type','data_type',DTYPES.keys()|list,tag.data_type,id='data_type') }}
+<label class="f"><span>Length (registers/coils)</span><input type="text" id="length" value="{{ DTYPES.get(tag.data_type, 1) }}" readonly><em>set automatically from the data type</em></label>
+{{ inp('Scale factor','scale_factor',tag.scale_factor,type='number',step='any') }}
+{{ inp('Offset','offset_value',tag.offset_value,type='number',step='any',hint='final = raw x scale + offset') }}
+{{ inp('Decimals','decimals',tag.decimals,type='number',min=0,max=10) }}
+{{ chk('Enabled','enabled',tag.enabled) }}
+</div><p class="muted">Byte order for FLOAT / 32-bit / 64-bit types is set on the device.</p>
+<div class="bar"><button class="btn primary">Save</button> <a class="btn" href="{{ url_for('tags', device=tag.device_id) }}">Cancel</a></div></form>
+<script type="application/json" id="dtypes">{{ DTYPES|tojson }}</script>
+{% endblock %}

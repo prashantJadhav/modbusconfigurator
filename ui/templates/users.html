@@ -1,0 +1,13 @@
+{% extends 'base.html' %}{% block title %}Users{% endblock %}
+{% block body %}{% from '_macros.html' import post_btn with context %}
+<h1>Users <a class="btn primary" href="{{ url_for('user_edit') }}">+ New user</a></h1>
+<table><thead><tr><th>Username</th><th>Role</th><th>Enabled</th><th>Last login</th><th></th></tr></thead><tbody>
+{% for u in users %}<tr><td>{{ u.username }}</td><td><span class="badge role-{{ u.role }}">{{ u.role }}</span></td><td>{{ 'yes' if u.enabled else 'no' }}</td><td>{{ u.last_login_at|dt }}</td>
+<td class="actions"><a class="btn sm" href="{{ url_for('user_edit', uid=u.id) }}">Edit</a>{% if u.id != user.id %}{{ post_btn(url_for('user_delete', uid=u.id), 'Delete', 'btn sm danger', 'Delete user ' ~ u.username ~ '?') }}{% endif %}</td></tr>{% endfor %}</tbody></table>
+<h2>Role permissions</h2>
+<table><thead><tr><th>Capability</th><th>viewer</th><th>engineer</th><th>admin</th></tr></thead><tbody>
+<tr><td>View dashboard, devices, tags, API settings (secret hidden), API log</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+<tr><td>Create / edit / clone / delete devices and tags; publish &amp; polling settings</td><td></td><td>&#10003;</td><td>&#10003;</td></tr>
+<tr><td>API URL, device ID and secret key</td><td></td><td></td><td>&#10003;</td></tr>
+<tr><td>Manage users, view audit trail</td><td></td><td></td><td>&#10003;</td></tr></tbody></table>
+{% endblock %}

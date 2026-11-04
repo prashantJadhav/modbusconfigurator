@@ -1,0 +1,17 @@
+[Unit]
+Description=Edifice Edge Gateway (Modbus -> Gobardhan API)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=gateway
+Group=dialout
+EnvironmentFile=/etc/edge-gateway/gateway.env
+WorkingDirectory=/opt/edge-gateway
+ExecStart=/opt/edge-gateway/venv/bin/python /opt/edge-gateway/gateway.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

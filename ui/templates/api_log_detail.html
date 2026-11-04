@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% block title %}API log #{{ r.id }}{% endblock %}
+{% block body %}
+<h1>API call #{{ r.id }} <a class="btn sm" href="{{ url_for('api_log') }}">&laquo; Back</a></h1>
+<h2>Summary</h2>
+<table class="kv"><tbody>
+<tr><th>Timestamp</th><td>{{ r.logged_at|dt }}</td></tr><tr><th>URL</th><td>{{ r.request_url }}</td></tr>
+<tr><th>Response code</th><td>{{ r.http_status or '-' }}</td></tr><tr><th>Result</th><td>{{ 'Accepted' if r.success else 'Failed / not sent' }}</td></tr>
+<tr><th>Message</th><td>{{ r.response_message }}</td></tr><tr><th>Duration</th><td>{{ r.duration_ms if r.duration_ms is not none else '-' }} ms</td></tr></tbody></table>
+{% if r.request_headers %}<h2>Request headers</h2><table class="kv"><tbody>{% for k, v in r.request_headers.items() %}<tr><th>{{ k }}</th><td class="mono">{{ v }}</td></tr>{% endfor %}</tbody></table>{% endif %}
+<h2>Sent payload</h2>
+{% if payload %}<table><thead><tr><th>Key</th><th>Value</th><th>Unit</th></tr></thead><tbody>{% for k, v, u in payload %}<tr><td>{{ k }}</td><td class="num">{{ v }}</td><td>{{ u }}</td></tr>{% endfor %}</tbody></table>
+{% else %}<p class="muted">No payload was sent.</p>{% endif %}
+{% if r.request_body %}<details><summary>Raw JSON body (exactly what was signed)</summary><pre>{{ r.request_body }}</pre></details>{% endif %}
+{% if r.response_body %}<h2>Response body</h2><pre>{{ r.response_body|pretty }}</pre>{% endif %}
+{% endblock %}

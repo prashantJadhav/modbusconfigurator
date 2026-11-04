@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}{% endblock %} - Edge Gateway</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+{% from '_macros.html' import csrf with context %}
+{% if user %}
+<header class="top">
+  <div class="brand">Edge Gateway <small></small></div>
+  <nav>
+  {% for ep,label,perm in [('dashboard','Dashboard','view'),('devices','Devices','view'),('tags','Tags','view'),('api_settings','API settings','view'),('api_log','API log','view'),('users','Users','admin'),('audit_view','Audit','admin')] %}
+    {% if can(perm) %}<a href="{{ url_for(ep) }}" class="{{ 'on' if request.endpoint==ep or (ep=='devices' and request.endpoint.startswith('device_')) or (ep=='tags' and request.endpoint.startswith('tag_')) or (ep=='api_log' and request.endpoint=='api_log_detail') or (ep=='users' and request.endpoint=='user_edit') }}">{{ label }}</a>{% endif %}
+  {% endfor %}
+  </nav>
+  <div class="who"><a href="{{ url_for('password') }}">{{ user.username }}</a> <span class="badge role-{{ user.role }}">{{ user.role }}</span>
+    <form method="post" action="{{ url_for('logout') }}" class="inline">{{ csrf() }}<button class="btn sm">Sign out</button></form></div>
+</header>
+{% endif %}
+<main>
+{% with msgs = get_flashed_messages(with_categories=true) %}{% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}{% endwith %}
+{% block body %}{% endblock %}
+</main>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body></html>

@@ -1,0 +1,18 @@
+[Unit]
+Description=Edifice Edge Gateway - configuration Web UI
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=gateway
+EnvironmentFile=/etc/edge-gateway/gateway.env
+WorkingDirectory=/opt/edge-gateway/ui
+ExecStart=/opt/edge-gateway/venv/bin/python /opt/edge-gateway/ui/app.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

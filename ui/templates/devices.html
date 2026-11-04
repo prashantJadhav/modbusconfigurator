@@ -1,0 +1,17 @@
+{% extends 'base.html' %}{% block title %}Devices{% endblock %}
+{% block body %}{% from '_macros.html' import conn, post_btn with context %}
+<h1>Modbus devices {% if can('config') %}<a class="btn primary" href="{{ url_for('device_new') }}">+ New device</a>{% endif %}</h1>
+<table><thead><tr><th>Name</th><th>Connection</th><th>Poll (ms)</th><th>Timeout / Retries</th>
+    <!--<th>Float / Long order</th><th>Double / Long64 order</th> -->
+    <th>Tags (on/all)</th><th>Status</th><th></th></tr></thead><tbody>
+{% for d in devices %}<tr><td><b>{{ d.device_name }}</b><br><span class="muted">{{ d.description or '' }}</span></td><td>{{ conn(d) }}</td><td class="num">{{ d.poll_interval_ms }}</td>
+<td>{{ d.timeout_ms }} ms / {{ d.retry_count }}</td>
+<!-- <td class="small">{{ d.float_byte_order }}<br>{{ d.long_byte_order }}</td><td class="small">{{ d.double_byte_order }}<br>{{ d.long64_byte_order }}</td> -->
+<td><a href="{{ url_for('tags', device=d.id) }}">{{ d.tag_enabled }} / {{ d.tag_count }}</a></td>
+<td>{% if not d.enabled %}<span class="badge off">disabled</span>{% elif d.connection_status == 'Connected' %}<span class="badge ok">connected</span>{% else %}<span class="badge bad">{{ (d.connection_status or 'pending')|lower }}</span>{% endif %}</td>
+<td class="actions">{% if can('config') %}<a class="btn sm" href="{{ url_for('device_edit', did=d.id) }}">Edit</a>
+<a class="btn sm" href="{{ url_for('device_clone', did=d.id) }}">Clone</a>
+{{ post_btn(url_for('device_toggle', did=d.id), 'Disable' if d.enabled else 'Enable') }}
+{{ post_btn(url_for('device_delete', did=d.id), 'Delete', 'btn sm danger', 'Delete this device and all its tags?') }}{% else %}<a class="btn sm" href="{{ url_for('tags', device=d.id) }}">Tags</a>{% endif %}</td></tr>
+{% else %}<tr><td colspan="9" class="muted">No devices configured.</td></tr>{% endfor %}</tbody></table>
+{% endblock %}

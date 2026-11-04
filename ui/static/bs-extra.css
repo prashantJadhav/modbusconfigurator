@@ -1,0 +1,26 @@
+/* small additions on top of Bootstrap */
+.clip{max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pclip{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:normal;overflow-wrap: anywhere;word-break: break-word;}
+.mono,pre,code{font-family:ui-monospace,Consolas,monospace;font-size:.8rem}
+.num{text-align:right;font-variant-numeric:tabular-nums}.actions{white-space:nowrap}
+tr.dim td{opacity:.55}tr.failrow td:first-child{box-shadow:inset 3px 0 var(--bs-danger)}
+table th{white-space:nowrap}.table>thead th{font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;color:var(--bs-secondary-color)}
+pre{background:var(--bs-body-bg);border:1px solid var(--bs-border-color);border-radius:.5rem;padding:.75rem;overflow:auto;max-height:420px}
+.kv th{width:200px}.hidden{display:none!important}
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-bg-type: #eaf3ff;
+    color: #26364a;
+}
+
+/* Hover effect */
+.table-hover > tbody > tr:hover > * {
+    --bs-table-bg-state: #d6e8ff;
+    color: #172b4d;
+}
+
+/* Table header */
+.table thead.table-dark th {
+    background-color: #243b53;
+    color: #ffffff;
+}
+

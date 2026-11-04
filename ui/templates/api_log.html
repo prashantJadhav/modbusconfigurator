@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% block title %}API log{% endblock %}
+{% block body %}
+<h1>API request / response log <label class="auto"><input type="checkbox" id="autorefresh"> auto-refresh 10 s</label></h1>
+<form method="get" class="filter">
+<label>Period <select name="show"><option value="today" {{ 'selected' if show=='today' }}>Today</option><option value="all" {{ 'selected' if show=='all' }}>All</option></select></label>
+<label>Result <select name="status"><option value="all" {{ 'selected' if status=='all' }}>All</option><option value="ok" {{ 'selected' if status=='ok' }}>Accepted (202)</option><option value="failed" {{ 'selected' if status=='failed' }}>Failed / not sent</option></select></label>
+<button class="btn sm">Apply</button> <span class="muted">{{ total }} record(s)</span></form>
+<table><thead><tr><th>Timestamp</th><th>API response code</th><th>API response message</th><th>Sent payload</th><th>ms</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr class="{{ '' if r.success else 'failrow' }}"><td>{{ r.logged_at|dt }}</td><td>{% if r.http_status %}<span class="badge {{ 'ok' if r.success else 'bad' }}">{{ r.http_status }}</span>{% else %}<span class="badge off">-</span>{% endif %}</td>
+<td>{{ r.response_message }}</td><td class="clip mono">{{ (r.request_body or '')[:110] }}</td><td>{{ r.duration_ms if r.duration_ms is not none else '' }}</td><td><a class="btn sm" href="{{ url_for('api_log_detail', lid=r.id) }}">View</a></td></tr>
+{% else %}<tr><td colspan="6" class="muted">No log entries.</td></tr>{% endfor %}</tbody></table>
+<p class="pager">{% if page > 1 %}<a class="btn sm" href="{{ url_for('api_log', show=show, status=status, page=page-1) }}">&laquo; Newer</a>{% endif %}
+Page {{ page }} / {{ pages }}
+{% if page < pages %}<a class="btn sm" href="{{ url_for('api_log', show=show, status=status, page=page+1) }}">Older &raquo;</a>{% endif %}</p>
+{% endblock %}

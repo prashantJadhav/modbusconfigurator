@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% block title %}Audit{% endblock %}
+{% block body %}<h1>Audit trail <span class="muted">(last 300)</span></h1>
+<table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>Detail</th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.at|dt }}</td><td>{{ r.username or '-' }}</td><td>{{ r.action }}</td><td>{{ r.entity }}</td><td class="clip">{{ r.detail }}</td></tr>{% endfor %}</tbody></table>{% endblock %}

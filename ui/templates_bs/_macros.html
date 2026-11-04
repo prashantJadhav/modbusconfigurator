@@ -1,0 +1,66 @@
+{# 'class' and 'id' are handled by each macro, everything else passes through as an HTML attribute #}
+{% macro attrs(kw) %}{% for k,v in kw.items() %}{% if v and k not in ('class','id') %} {{ k }}{% if v is not sameas true %}="{{ v }}"{% endif %}{% endif %}{% endfor %}{% endmacro %}
+{% macro inp(label, name, value, type='text', hint='', col='mb-3') %}{% set fid = kwargs.get('id') or 'f_' ~ name %}
+<div class="{{ col }}"><label class="form-label small text-body-secondary mb-1" for="{{ fid }}">{{ label }}</label>
+<input class="form-control {{ kwargs.get('class','') }}" id="{{ fid }}" type="{{ type }}" name="{{ name }}" value="{{ '' if value is none else value }}"{{ attrs(kwargs) }}>
+{% if hint %}<div class="form-text">{{ hint }}</div>{% endif %}</div>
+{% endmacro %}
+{% macro sel(label, name, options, value, help=none, hint='', col='mb-3') %}{% set fid = kwargs.get('id') or 'f_' ~ name %}
+<div class="{{ col }}"><label class="form-label small text-body-secondary mb-1" for="{{ fid }}">{{ label }}</label>
+<select class="form-select" id="{{ fid }}" name="{{ name }}"{{ attrs(kwargs) }}>
+{% for o in options %}{% if o is sequence and o is not string %}{% set ov, ol = o[0], o[1] %}{% else %}{% set ov, ol = o, o %}{% endif %}
+<option value="{{ ov }}" {{ 'selected' if ov|string == value|string }}>{{ ol }}{% if help and help.get(ov) %} - {{ help[ov] }}{% endif %}</option>
+{% endfor %}</select>{% if hint %}<div class="form-text">{{ hint }}</div>{% endif %}</div>
+{% endmacro %}
+{% macro chk(label, name, value, col='mb-3') %}{% set fid = 'f_' ~ name %}
+<div class="{{ col }} d-flex align-items-end"><div class="form-check form-switch mb-2">
+<input class="form-check-input" type="checkbox" role="switch" id="{{ fid }}" name="{{ name }}" {{ 'checked' if value }}{{ attrs(kwargs) }}>
+<label class="form-check-label" for="{{ fid }}">{{ label }}</label></div></div>
+{% endmacro %}
+{% macro csrf() %}<input type="hidden" name="_csrf" value="{{ csrf_token }}">{% endmacro %}
+{% macro post_btn(url, label, cls='btn btn-sm btn-outline-secondary', confirm='') %}
+<form method="post" action="{{ url }}" class="d-inline"{% if confirm %} data-confirm="{{ confirm }}"{% endif %}>{{ csrf() }}<button class="{{ cls }}">{{ label }}</button></form>
+{% endmacro %}
+{% macro conn(d) %}{% if d.protocol == 'TCP' %}TCP {{ d.ip_address }}:{{ d.port }} &middot; unit {{ d.unit_id }}{% else %}RTU {{ d.com_port }} &middot; {{ d.baud_rate }} {{ d.data_bits }}{{ d.parity[0] }}{{ d.stop_bits }} &middot; slave {{ d.slave_id }}{% endif %}{% endmacro %}
+{% macro pconn(d) %}{% if d.protocol == 'TCP' %} {{ d.ip_address }} &middot; {% else %}RTU {{ d.com_port }} &middot; &middot; {% endif %}{% endmacro %}
+{% macro show_errors(errs) %}{% if errs %}<div class="alert alert-danger"><ul class="mb-0">{% for e in errs %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}{% endmacro %}
+{% macro badge(kind, text, title='') %}<span class="badge text-bg-{{ kind }}"{% if title %} title="{{ title }}"{% endif %}>{{ text }}</span>{% endmacro %}
+
+{% macro radio(label, name, options, value, help=none, hint='', col='mb-3') %}
+{% set fid = kwargs.get('id') or 'f_' ~ name %}
+<div class="{{ col }}">
+    <label class="form-label small text-body-secondary mb-1">{{ label }}</label>
+
+    <div class="{{ kwargs.get('class', '') }}">
+        {% for o in options %}
+            {% if o is sequence and o is not string %}
+                {% set ov, ol = o[0], o[1] %}
+            {% else %}
+                {% set ov, ol = o, o %}
+            {% endif %}
+
+            <div class="form-check">
+                <input
+                    class="form-check-input"
+                    type="radio"
+                    id="{{ fid }}_{{ loop.index }}"
+                    name="{{ name }}"
+                    value="{{ ov }}"
+                    {{ 'checked' if ov|string == value|string }}
+                    {{ attrs(kwargs) }}
+                >
+                <label class="form-check-label" for="{{ fid }}_{{ loop.index }}">
+                    {{ ol }}
+                    {% if help and help.get(ov) %}
+                        <span class="text-body-secondary small"> - {{ help[ov] }}</span>
+                    {% endif %}
+                </label>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if hint %}
+        <div class="form-text">{{ hint }}</div>
+    {% endif %}
+</div>
+{% endmacro %}

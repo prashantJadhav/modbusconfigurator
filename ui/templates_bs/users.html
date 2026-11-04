@@ -1,0 +1,13 @@
+{% extends 'base.html' %}{% block title %}Users{% endblock %}
+{% block body %}{% from '_macros.html' import post_btn, badge with context %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1 class="h3 mb-0">Users</h1><a class="btn btn-primary" href="{{ url_for('user_edit') }}">+ New user</a></div>
+<div class="card shadow-sm mb-4"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Username</th><th>Role</th><th>Enabled</th><th>Last login</th><th></th></tr></thead><tbody>
+{% for u in users %}<tr><td>{{ u.username }}</td><td>{{ badge({'admin':'danger','engineer':'warning','viewer':'success'}[u.role], u.role) }}</td><td>{{ 'yes' if u.enabled else 'no' }}</td><td>{{ u.last_login_at|dt }}</td>
+<td class="actions text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('user_edit', uid=u.id) }}">Edit</a>{% if u.id != user.id %} {{ post_btn(url_for('user_delete', uid=u.id), 'Delete', 'btn btn-sm btn-outline-danger', 'Delete user ' ~ u.username ~ '?') }}{% endif %}</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="card shadow-sm"><div class="card-header fw-semibold">Role permissions</div><div class="table-responsive"><table class="table table-sm mb-0 text-center align-middle">
+<thead><tr><th class="text-start">Capability</th><th>viewer</th><th>engineer</th><th>admin</th></tr></thead><tbody>
+<tr><td class="text-start">View dashboard, devices, tags, API settings (secret hidden), API log</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+<tr><td class="text-start">Create / edit / clone / delete devices and tags; publish &amp; polling settings</td><td></td><td>&#10003;</td><td>&#10003;</td></tr>
+<tr><td class="text-start">API URL, device ID and secret key</td><td></td><td></td><td>&#10003;</td></tr>
+<tr><td class="text-start">Manage users, view audit trail</td><td></td><td></td><td>&#10003;</td></tr></tbody></table></div></div>
+{% endblock %}

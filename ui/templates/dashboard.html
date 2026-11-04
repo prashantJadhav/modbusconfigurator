@@ -1,0 +1,23 @@
+{% extends 'base.html' %}{% block title %}Dashboard{% endblock %}
+{% block body %}{% from '_macros.html' import conn,pconn with context %}
+<h1>Dashboard <label class="auto"><input type="checkbox" id="autorefresh"> auto-refresh 10 s</label></h1>
+{% if unmapped %}<div class="flash error">Required payload keys with no enabled tag - the API call will NOT be sent until mapped:
+  <b>{{ unmapped|map(attribute='tag_name')|join(', ') }}</b></div>{% endif %}
+{% if cfg and not cfg.enabled %}<div class="flash warn">API publishing is disabled (API settings &rarr; Enabled).</div>{% endif %}
+<h2>Devices</h2>
+<table><thead><tr><th>Device</th><th>Connection</th><th>Poll (ms)</th><th>Status</th><th>Last comm</th><th>Resp (ms)</th><th>OK / Fail</th><th>Last error</th></tr></thead><tbody>
+{% for d in devices %}<tr><td><a href="{{ url_for('tags', device=d.id) }}">{{ d.device_name }}</a></td><td>{{ conn(d) }}</td><td>{{ d.poll_interval_ms }}</td>
+<td>{% if not d.enabled %}<span class="badge off">disabled</span>{% elif d.connection_status == 'Connected' %}<span class="badge ok">connected</span>{% else %}<span class="badge bad">disconnected</span>{% endif %}</td>
+<td>{{ d.last_comm_time|dt }}</td><td>{{ d.response_time_ms if d.response_time_ms is not none else '-' }}</td><td>{{ d.success_count or 0 }} / {{ d.fail_count or 0 }}</td><td class="clip">{{ d.last_error or '' }}</td></tr>
+{% else %}<tr><td colspan="8" class="muted">No devices yet.</td></tr>{% endfor %}</tbody></table>
+<h2>Live values</h2>
+<table><thead><tr><th>Payload key</th><th>Device</th><th>Value</th><th>Unit</th><th>Quality</th><th>Age</th><th>Error</th></tr></thead><tbody>
+{% for t in live %}<tr><td>{{ t.tag_name }}{% if t.is_required %} <span class="badge req">required</span>{% endif %}</td><td>{{ t.device_name }}</td>
+<td class="num">{{ t.value if t.value is not none else '-' }}</td><td>{{ t.unit or '' }}</td>
+<td>{% if t.quality == 'GOOD' %}<span class="badge ok">good</span>{% elif t.quality %}<span class="badge bad">bad</span>{% else %}-{% endif %}</td><td>{{ t.read_at|age }}</td><td class="clip">{{ t.error or '' }}</td></tr>
+{% else %}<tr><td colspan="7" class="muted">No enabled tags.</td></tr>{% endfor %}</tbody></table>
+<h2>Last API call</h2>
+{% if last_api %}<table><tbody><tr><th>Time</th><td>{{ last_api.logged_at|dt }}</td><th>Response</th><td>{{ last_api.http_status or '-' }}</td>
+<th>Message</th><td>{{ last_api.response_message }}</td><td><a href="{{ url_for('api_log_detail', lid=last_api.id) }}">details</a></td></tr></tbody></table>
+{% else %}<p class="muted">Nothing sent yet.</p>{% endif %}
+{% endblock %}

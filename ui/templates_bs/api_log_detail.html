@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% block title %}API log #{{ r.id }}{% endblock %}
+{% block body %}{% from '_macros.html' import badge with context %}
+<div class="d-flex align-items-center gap-3 mb-3"><h1 class="h3 mb-0">API call #{{ r.id }}</h1> <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('api_log') }}">&laquo; Back</a></div>
+<div class="row g-3">
+<div class="col-lg-6"><div class="card shadow-sm h-100"><div class="card-header fw-semibold">Summary</div><table class="table table-sm kv mb-0"><tbody>
+<tr><th>Timestamp</th><td>{{ r.logged_at|dt }}</td></tr><tr><th>URL</th><td class="text-break">{{ r.request_url }}</td></tr>
+<tr><th>Response code</th><td>{{ r.http_status or '-' }}</td></tr><tr><th>Result</th><td>{{ badge('success','Accepted') if r.success else badge('danger','Failed / not sent') }}</td></tr>
+<tr><th>Message</th><td>{{ r.response_message }}</td></tr><tr><th>Duration</th><td>{{ r.duration_ms if r.duration_ms is not none else '-' }} ms</td></tr></tbody></table></div></div>
+{% if r.request_headers %}<div class="col-lg-6"><div class="card shadow-sm h-100"><div class="card-header fw-semibold">Request headers</div><table class="table table-sm kv mb-0"><tbody>{% for k, v in r.request_headers.items() %}<tr><th>{{ k }}</th><td class="mono text-break">{{ v }}</td></tr>{% endfor %}</tbody></table></div></div>{% endif %}
+<div class="col-12"><div class="card shadow-sm"><div class="card-header fw-semibold">Sent payload</div>
+{% if payload %}<div class="table-responsive"><table class="table table-sm table-hover mb-0"><thead><tr><th>Key</th><th class="text-end">Value</th><th>Unit</th></tr></thead><tbody>{% for k, v, u in payload %}<tr><td>{{ k }}</td><td class="num">{{ v }}</td><td>{{ u }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="card-body text-body-secondary">No payload was sent.</div>{% endif %}</div></div>
+{% if r.request_body %}<div class="col-12"><details><summary class="text-primary">Raw JSON body (exactly what was signed)</summary><pre class="mt-2">{{ r.request_body }}</pre></details></div>{% endif %}
+{% if r.response_body %}<div class="col-12"><div class="fw-semibold mb-1">Response body</div><pre>{{ r.response_body|pretty }}</pre></div>{% endif %}
+</div>{% endblock %}
